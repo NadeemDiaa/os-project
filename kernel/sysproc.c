@@ -107,3 +107,19 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_getprocs(void)
+{
+  uint64 addr;
+  argaddr(0, &addr);
+
+  struct procinfo table[NPROC];
+  int n = kgetprocs(table);
+
+  struct proc *p = myproc();
+  if(copyout(p->pagetable, addr, (char*)table, n * sizeof(struct procinfo)) < 0)
+    return -1;
+
+  return n;
+}
