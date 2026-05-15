@@ -23,22 +23,18 @@ char* get_state_string(int state) {
 int main(int argc, char *argv[]) {
     struct procinfo procs[64]; 
     int num_procs;
-
     num_procs = getprocs(procs);
-
     if(num_procs < 0) {
         printf("ps: failed to retrieve processes\n");
         exit(1);
     }
-
-    printf("PID\tSTATE\t\tNAME\n");
-
+    printf("PID    STATE       NAME\n");
     for(int i = 0; i < num_procs; i++) {
-        printf("%d\t%s\t\t%s\n", 
-            procs[i].pid, 
-            get_state_string(procs[i].state), 
-            procs[i].name);
+        char *state = get_state_string(procs[i].state);
+        printf("%d      %s", procs[i].pid, state);
+        int len = strlen(state);
+        for(int j = len; j < 12; j++) printf(" ");
+        printf("%s\n", procs[i].name);
     }
-
     exit(0);
 }
