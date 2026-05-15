@@ -107,3 +107,39 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_getprocs(void)
+{
+  extern struct proc proc[]; 
+
+  uint64 addr;
+  argaddr(0, &addr);   // get user-space address
+
+  struct procinfo info[NPROC];
+  int count = 0;
+
+  // Traverse process table
+  for(struct proc *p = proc; p < &proc[NPROC]; p++) {
+
+    acquire(&p->lock);
+
+    // Store active processes only
+    if(p->state != UNUSED) {
+      info[count].pid = p->pid;
+      info[count].state = p->state;
+      safestrcpy(info[count].name, p->name,
+                 sizeof(info[count].name));
+      count++;
+    }
+
+    release(&p->lock);
+  }
+
+  // Copy data to user space
+  if(copyout(myproc()->pagetable, addr, (char*)info,
+             count * sizeof(struct procinfo)) < 0)
+    return -1;
+
+  return count; // number of processes copied
+}
