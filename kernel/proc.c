@@ -688,3 +688,22 @@ procdump(void)
     printf("\n");
   }
 }
+
+int 
+kgetprocs(struct procinfo *table)
+{
+  struct proc *p;
+  int n = 0;
+
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+    if(p->state != UNUSED){
+      table[n].pid   = p->pid;
+      table[n].state = p->state;
+      safestrcpy(table[n].name, p->name, sizeof(p->name));
+      n++;
+    }
+    release(&p->lock);
+  }
+  return n;
+}
